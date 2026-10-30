@@ -107,14 +107,13 @@ time,.price,.sum-price,.day{font-variant-numeric:tabular-nums}
 .tabs{display:inline-flex;gap:6px;margin-top:28px;padding:5px;background:color-mix(in oklab,var(--card) 70%,transparent);border-radius:999px}
 .tabs button{min-height:44px;padding:0 20px;border:0;border-radius:999px;background:transparent;font:600 16px var(--text);color:var(--ink);cursor:pointer}
 .tabs button[aria-selected=true]{background:var(--ink);color:var(--bg)}
-.slots{list-style:none;margin:20px 0 0;padding:0;max-width:760px;
-  background:repeating-linear-gradient(to bottom,transparent 0 calc(2.6rem - 1px),color-mix(in oklab,var(--ink) 9%,transparent) calc(2.6rem - 1px) 2.6rem)}
-.slots li{display:grid;grid-template-columns:4.2rem 1fr;gap:12px;padding:12px 0;border-bottom:1px solid color-mix(in oklab,var(--ink) 18%,transparent)}
-.slots time{font-weight:600;padding-top:2px}
+.slots{list-style:none;margin:20px 0 0;padding:0;max-width:760px;border-top:1px solid color-mix(in oklab,var(--ink) 18%,transparent)}
+.slots li{display:grid;grid-template-columns:4.2rem 1fr;gap:12px;align-items:baseline;padding:14px 0;border-bottom:1px solid color-mix(in oklab,var(--ink) 18%,transparent)}
+.slots time{font-weight:600}
 .slots h3{font:600 1.05rem/1.35 var(--text)}
 .slots li div p{font-size:16px;margin-top:2px}
 #slots[data-show=y] .o,#slots[data-show=o] .y{display:none}
-.slots .half{display:block;border-bottom:0;padding:6px 0}
+.slots .half{display:block;padding:12px 0 12px calc(4.2rem + 12px)}
 .slots .half p{display:inline-block;background:var(--sun);color:var(--ink);font-weight:600;font-size:16px;padding:6px 14px;border-radius:999px}
 #slots.swap{animation:fade .15s ease-out}
 @keyframes fade{from{opacity:0}}
@@ -143,9 +142,12 @@ time,.price,.sum-price,.day{font-variant-numeric:tabular-nums}
 .row-best{background:var(--sun);border-color:var(--sun);padding-block:24px}
 .row-best div p{color:var(--ink)}
 .row.picked{border-color:var(--go)}
-.stamp{position:absolute;top:-14px;right:96px;width:58px;height:58px;border-radius:50%;background:var(--sun);border:2px solid var(--ink);display:grid;place-items:center;
-  font:600 14px/1 var(--display);transform:rotate(-10deg);opacity:0;pointer-events:none}
-.row.picked .stamp{opacity:1}
+/* stamp is a grid cell, so it centres with the price and button instead of floating over them */
+.stamp{display:none;grid-column:2;grid-row:1/3;width:52px;height:52px;border-radius:50%;background:var(--sun);border:2px solid var(--ink);place-items:center;
+  font:600 13px/1 var(--display);transform:rotate(-10deg);pointer-events:none}
+.row.picked{grid-template-columns:1fr auto auto}
+.row.picked .stamp{display:grid}
+.row.picked .btn{grid-column:3}
 .row-best .stamp{background:var(--card)}
 .plans-img{display:none;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:var(--r-lg);transform:rotate(2deg)}
 
@@ -243,9 +245,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--go);box-
   .teachers{margin:32px 0 0;padding:0;grid-auto-flow:row;grid-template-columns:repeat(3,1fr);overflow:visible}
   .plans{grid-template-columns:1.25fr .75fr;gap:64px}
   .plans-img{display:block}
-  .row{grid-template-columns:1fr auto auto;padding:18px 22px}
-  .row .price{grid-row:auto}
-  .row .btn{grid-row:auto;grid-column:auto}
+  .row,.row.picked{grid-template-columns:1fr 52px auto auto;padding:18px 22px}
+  .row .price{grid-row:1;grid-column:3}
+  .row .btn,.row.picked .btn{grid-row:1;grid-column:4}
+  .row>*{grid-row:1}
+  .stamp{display:grid;visibility:hidden}
+  .row.picked .stamp{visibility:visible}
   .reg{grid-template-columns:1.4fr 1fr;align-items:start}
   .summary{order:0;position:sticky;top:calc(var(--bar) + 24px);padding:28px}
   .card{padding:32px}
