@@ -1,0 +1,9 @@
+node_modules/
+.venv/
+.polish/
+*.log
+portfolio/
+dist/
+_raw/
+NOTES.md
+FIVERR.md
