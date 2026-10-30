@@ -36,7 +36,13 @@ ok((await p.getAttribute('#lang','aria-label'))==='切換成中文','switch butt
 // submit
 await p.fill('#f-child','Mia');await p.selectOption('#f-age','7');await p.fill('#f-parent','Ann Lee');
 await p.fill('#f-phone','0912-345-678');await p.fill('#f-email','ann@example.com');await p.check('#f-consent');
-await p.click('#form button[type=submit]');
+// FormSubmit is stubbed so tests never email the inbox: first a failure, then a success
+let sent=null;await p.route('**/formsubmit.co/**',r=>r.fulfill({status:500,body:'{}'}));
+await p.click('#form button[type=submit]');await p.waitForTimeout(500);
+ok(await p.isVisible('#form')&&(await p.textContent('#e-send')).startsWith('It didn'),'send failure keeps the form and says so');
+await p.unroute('**/formsubmit.co/**');await p.route('**/formsubmit.co/**',r=>{sent=r.request().postDataJSON();r.fulfill({status:200,contentType:'application/json',body:'{"success":"true"}'});});
+await p.click('#form button[type=submit]');await p.waitForTimeout(500);
+ok(sent&&sent.child==='Mia'&&sent.plan==='Full day + after-care'&&sent.phone==='0912-345-678'&&/^SL-/.test(sent.ref),'payload has child, plan, phone, ref');
 ok(await p.isVisible('#done')&&await p.isHidden('#form'),'success panel replaces the form');
 ok(/Full day \+ after-care spot for Mia/.test(await p.textContent('#done-text')),'done text: '+await p.textContent('#done-text'));
 ok(/^SL-[A-Z0-9]{4}$/.test(await p.textContent('#done-ref')),'ref code '+await p.textContent('#done-ref'));
@@ -49,5 +55,5 @@ await p.evaluate(()=>document.getElementById('signup').scrollIntoView({behavior:
 // persistence + no horizontal scroll
 await p.click('#lang');await p.reload();await p.waitForTimeout(300);ok(await p.evaluate(()=>document.documentElement.lang)==='en','EN remembered after reload');
 ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal scroll');
-ok(errs.length===0,'no console errors '+errs.join('|'));
+const real=errs.filter(e=>!e.includes('status of 500'));ok(real.length===0,'no console errors (besides the stubbed 500) '+real.join('|'));
 await b.close();})();

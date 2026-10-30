@@ -49,8 +49,8 @@ const EN = {
   fChild:'Child\'s name', fAge:'Child\'s age', fAgePick:'Choose', fParent:'Parent\'s name', fPhone:'Mobile number', fEmail:'Email',
   fPlan:'Plan', fNotes:'Allergies or anything the teachers should know', opt:'(optional)',
   fConsent:'I agree that these details are used only for this sign-up and to contact me.',
-  send:'Send sign-up', demo:'Demo form: nothing is sent or stored.',
-  doneH:'Got it!', doneRef:'Sign-up number', doneDemo:'Demo: nothing was sent.',
+  send:'Send sign-up', demo:'Test form: it goes to the designer\'s test inbox. The camp is invented.',
+  doneH:'Got it!', doneRef:'Sign-up number', doneDemo:'Sent to the designer\'s test inbox.',
   sumH:'Your plan', sumNone:'No plan picked yet', sumMeta:'20-31 Jan · Mon to Fri · Da\'an, Taipei',
   mapLabel:'Sketch map: 3 minutes on foot from exit 6 of MRT Da\'an Station',
   whereH:'Where we are', addr:'Da\'an District, Taipei (sample address), 3 minutes on foot from exit 6 of MRT Da\'an Station.',
@@ -66,18 +66,18 @@ const EN = {
   q6:'Can parents come to the last-day show?', a6:'Yes. It starts at 15:00 on 31 Jan and takes about 40 minutes. Each child can bring 2 family members.',
   finalH:'8 kids per group, no more', finalP:'After you sign up we call to confirm, and you only pay after that.',
   footAddr:'Da\'an District, Taipei (sample address) · Winter Camp 2027',
-  disc:'Concept project. The school, teachers and prices are invented, and the form sends nothing. Photos from Pexels.',
+  disc:'Concept project. The school, teachers and prices are invented, and the form only goes to the designer\'s test inbox. Photos from Pexels.',
   dockT:'Winter Camp · from NT$9,800', dockL:'Quick sign-up',
 };
 const MSG = {
   zh:{child:'請填孩子的名字。', age:'請選孩子的年齡。', parent:'請填家長姓名。', phone:'請填手機號碼，例如 0912 345 678。',
-      email:'請填 email，例如 name@example.com。', plan:'請選一個方案。', consent:'請勾選同意後再送出。',
+      email:'請填 email，例如 name@example.com。', plan:'請選一個方案。', consent:'請勾選同意後再送出。', send:'沒有送出，請檢查網路再試一次。',
       done:(c, p) => `我們已為${c}保留${p}的名額，會在 1 個工作天內打電話給你。`,
       plans:{half:'半天班', full:'全天班', care:'全天＋課後照顧'}, from:'NT$9,800 起', demo:'示範按鈕：還沒有連結 LINE 帳號。',
       lang:'EN', langCode:'en', langLabel:'Switch to English', title:'豆芽巷美語 寒假英語營 2027 · Sprout Lane English Winter Camp'},
   en:{child:'Please enter your child\'s name.', age:'Please choose your child\'s age.', parent:'Please enter your name.',
       phone:'Enter a mobile number like 0912 345 678.', email:'Enter an email like name@example.com.', plan:'Please choose a plan.',
-      consent:'Please tick the box to continue.',
+      consent:'Please tick the box to continue.', send:'It didn\'t send. Check your connection and try again.',
       done:(c, p) => `We're holding a ${p} spot for ${c} and will call you within 1 working day.`,
       plans:{half:'Half day', full:'Full day', care:'Full day + after-care'}, from:'from NT$9,800', demo:'Demo button: no LINE account is linked yet.',
       lang:'中文', langCode:'zh-Hant', langLabel:'切換成中文', title:'Sprout Lane English Winter Camp 2027 · Da\'an, Taipei'},
@@ -174,13 +174,25 @@ function clearErr(k){ $('#e-' + k).textContent = ''; $$(FIELD[k], form).forEach(
   i.addEventListener('input', () => { if (i.hasAttribute('aria-invalid') && CHECK[k]()) clearErr(k); });
 });
 const doneText = () => { $('#done-text').textContent = T().done(F.child.value.trim(), T().plans[F.plan.value]); };
-form.addEventListener('submit', e => {
+// FormSubmit relays the JSON to the inbox behind this alias (no account, no server of ours)
+const INBOX = 'https://formsubmit.co/ajax/41817e9b92d59e05acd3c344189ade0a';
+form.addEventListener('submit', async e => {
   e.preventDefault();
   const bad = Object.keys(CHECK).filter(k => !CHECK[k]());
   Object.keys(CHECK).forEach(k => bad.includes(k) ? setErr(k) : clearErr(k));
   if (bad.length) return $(FIELD[bad[0]], form).focus();
+  const ref = 'SL-' + Array.from(crypto.getRandomValues(new Uint8Array(4)), b => '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'[b % 32]).join('');
+  const btn = form.querySelector('[type=submit]'), err = $('#e-send');
+  btn.disabled = true; err.textContent = '';
+  try {
+    const r = await fetch(INBOX, {method:'POST', headers:{'Content-Type':'application/json', Accept:'application/json'}, body:JSON.stringify({
+      _subject:`Winter Camp sign-up ${ref}`, _template:'table', _captcha:'false', ref,
+      child:F.child.value.trim(), age:F.age.value, parent:F.parent.value.trim(), phone:F.phone.value.trim(), email:F.email.value.trim(),
+      _replyto:F.email.value.trim(), plan:MSG.en.plans[F.plan.value], notes:F.notes.value.trim(), language:lang})});
+    if (!r.ok || String((await r.json()).success) !== 'true') throw r.status;
+  } catch { btn.disabled = false; err.textContent = T().send; return; }
   doneText();
-  $('#done-ref').textContent = 'SL-' + Array.from(crypto.getRandomValues(new Uint8Array(4)), b => '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'[b % 32]).join('');
+  $('#done-ref').textContent = ref;
   form.hidden = true; const d = $('#done'); d.hidden = false; d.focus();
 });
 

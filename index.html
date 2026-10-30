@@ -215,14 +215,15 @@
           <label class="check"><input type="checkbox" id="f-consent" name="consent" aria-describedby="e-consent"><span data-i18n="fConsent">我同意這些資料只用於這次報名和聯絡。</span></label>
           <p class="err" id="e-consent"></p>
         </div>
+        <p class="err" id="e-send" role="alert"></p>
         <button class="btn btn-go btn-lg" type="submit" data-i18n="send">送出報名</button>
-        <p class="demo" data-i18n="demo">示範表單：不會傳送或儲存任何資料。</p>
+        <p class="demo" data-i18n="demo">測試表單：資料會寄到設計師的測試信箱，營隊是虛構的。</p>
       </form>
       <div class="card done" id="done" hidden tabindex="-1">
         <h3 data-i18n="doneH">收到了！</h3>
         <p id="done-text"></p>
         <p class="ref"><span data-i18n="doneRef">報名編號</span> <b id="done-ref"></b></p>
-        <p class="demo" data-i18n="doneDemo">示範：沒有傳送任何資料。</p>
+        <p class="demo" data-i18n="doneDemo">已寄到設計師的測試信箱。</p>
       </div>
       <aside class="summary" aria-live="polite">
         <p data-i18n="sumH">你選的方案</p>
@@ -287,7 +288,7 @@
 <footer class="foot">
   <p class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22V12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M12 14C12 9 8.5 6 3.5 6c0 5 3.5 8 8.5 8z"/><path d="M12 12c0-4.5 3-7.5 8.5-7.5 0 4.5-3 7.5-8.5 7.5z"/></svg> <span data-i18n="brand">豆芽巷美語</span></p>
   <p data-i18n="footAddr">台北市大安區（示意地址）· 寒假英語營 2027</p>
-  <p class="disc" data-i18n="disc">概念作品。學校、老師和價格都是虛構的，表單不會送出資料。照片來自 Pexels。</p>
+  <p class="disc" data-i18n="disc">概念作品。學校、老師和價格都是虛構的，表單只會寄到設計師的測試信箱。照片來自 Pexels。</p>
 </footer>
 
 <aside class="dock" id="dock" data-i18n-label="dockL" aria-label="快速報名"><span data-i18n="dockT">寒假營 · NT$9,800 起</span><a class="btn btn-go" href="#signup" data-i18n="signup">立即報名</a></aside>
