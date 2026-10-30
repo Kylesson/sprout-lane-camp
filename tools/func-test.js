@@ -36,13 +36,14 @@ ok((await p.getAttribute('#lang','aria-label'))==='切換成中文','switch butt
 // submit
 await p.fill('#f-child','Mia');await p.selectOption('#f-age','7');await p.fill('#f-parent','Ann Lee');
 await p.fill('#f-phone','0912-345-678');await p.fill('#f-email','ann@example.com');await p.check('#f-consent');
-// FormSubmit is stubbed so tests never email the inbox: first a failure, then a success
-let sent=null;await p.route('**/formsubmit.co/**',r=>r.fulfill({status:500,body:'{}'}));
+// FormSubmit and the Sheet are stubbed so tests never email the inbox or add rows: first a failure, then a success
+let sent=null,row=null;await p.route('**/script.google.com/**',r=>{row=JSON.parse(r.request().postData());r.fulfill({status:200,body:'{"success":"true"}'});});await p.route('**/formsubmit.co/**',r=>r.fulfill({status:500,body:'{}'}));
 await p.click('#form button[type=submit]');await p.waitForTimeout(500);
 ok(await p.isVisible('#form')&&(await p.textContent('#e-send')).startsWith('It didn'),'send failure keeps the form and says so');
 await p.unroute('**/formsubmit.co/**');await p.route('**/formsubmit.co/**',r=>{sent=r.request().postDataJSON();r.fulfill({status:200,contentType:'application/json',body:'{"success":"true"}'});});
 await p.click('#form button[type=submit]');await p.waitForTimeout(500);
 ok(sent&&sent.child==='Mia'&&sent.plan==='Full day + after-care'&&sent.phone==='0912-345-678'&&/^SL-/.test(sent.ref),'payload has child, plan, phone, ref');
+ok(row&&row.ref===sent.ref&&!('_subject' in row),'sheet gets the same sign-up once, after the email');
 ok(await p.isVisible('#done')&&await p.isHidden('#form'),'success panel replaces the form');
 ok(/Full day \+ after-care spot for Mia/.test(await p.textContent('#done-text')),'done text: '+await p.textContent('#done-text'));
 ok(/^SL-[A-Z0-9]{4}$/.test(await p.textContent('#done-ref')),'ref code '+await p.textContent('#done-ref'));

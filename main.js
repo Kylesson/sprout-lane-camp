@@ -176,6 +176,8 @@ function clearErr(k){ $('#e-' + k).textContent = ''; $$(FIELD[k], form).forEach(
 const doneText = () => { $('#done-text').textContent = T().done(F.child.value.trim(), T().plans[F.plan.value]); };
 // FormSubmit relays the JSON to the inbox behind this alias (no account, no server of ours)
 const INBOX = 'https://formsubmit.co/ajax/41817e9b92d59e05acd3c344189ade0a';
+// Apps Script web app that appends one row per sign-up to the Google Sheet
+const SHEET = 'https://script.google.com/macros/s/AKfycbxdgIfqHzhn0o0TUPDCYViA46LqkFTzlKstX3fi_aAwBl3xKDlf6tlinD2XC59PFJlp/exec';
 form.addEventListener('submit', async e => {
   e.preventDefault();
   const bad = Object.keys(CHECK).filter(k => !CHECK[k]());
@@ -184,13 +186,15 @@ form.addEventListener('submit', async e => {
   const ref = 'SL-' + Array.from(crypto.getRandomValues(new Uint8Array(4)), b => '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'[b % 32]).join('');
   const btn = form.querySelector('[type=submit]'), err = $('#e-send');
   btn.disabled = true; err.textContent = '';
+  const row = {ref, child:F.child.value.trim(), age:F.age.value, parent:F.parent.value.trim(), phone:F.phone.value.trim(),
+    email:F.email.value.trim(), plan:MSG.en.plans[F.plan.value], notes:F.notes.value.trim(), language:lang};
   try {
     const r = await fetch(INBOX, {method:'POST', headers:{'Content-Type':'application/json', Accept:'application/json'}, body:JSON.stringify({
-      _subject:`Winter Camp sign-up ${ref}`, _template:'table', _captcha:'false', ref,
-      child:F.child.value.trim(), age:F.age.value, parent:F.parent.value.trim(), phone:F.phone.value.trim(), email:F.email.value.trim(),
-      _replyto:F.email.value.trim(), plan:MSG.en.plans[F.plan.value], notes:F.notes.value.trim(), language:lang})});
+      _subject:`Winter Camp sign-up ${ref}`, _template:'table', _captcha:'false', _replyto:row.email, ...row})});
     if (!r.ok || String((await r.json()).success) !== 'true') throw r.status;
   } catch { btn.disabled = false; err.textContent = T().send; return; }
+  // after the email succeeds, so a retry never leaves a duplicate row; text/plain avoids a CORS preflight Apps Script can't answer
+  await fetch(SHEET, {method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(row)}).catch(() => {});
   doneText();
   $('#done-ref').textContent = ref;
   form.hidden = true; const d = $('#done'); d.hidden = false; d.focus();
